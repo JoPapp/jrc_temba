@@ -130,7 +130,7 @@ def parseCSVFilesAndConvert(sheetNames):
                     result += '[REGION, ' + \
                         row.pop(0) + ', ' + row.pop(0) + ', *, *]:'
                     result += '\n'
-                    result += " ".join(year) + " "
+                    result += " ".join(year)
                     result += ':=\n'
                     result += " ".join(row) + " "
                     result += '\n'
@@ -183,7 +183,7 @@ def insert_no_variables(sheetNames, i):
         for row in reader:
             firstColumn.append(row[0])
             secondColumn.append(row[1])
-        result += " ".join(firstColumn) + ' '
+        result += " ".join(firstColumn)
         result += ':=\n'
         result += " ".join(secondColumn) + ' '
         result += ';\n'
@@ -201,7 +201,7 @@ def insert_two_variables(sheetNames, i):
         for row in reader:
             result += '[REGION, ' + row.pop(0) + ', *, *]:'
             result += '\n'
-            result += " ".join(year) + " "
+            result += " ".join(year)
             result += ':=\n'
             result += " ".join(row) + " "
             result += '\n'
@@ -215,7 +215,7 @@ def insert_table(name):
         reader = csv.reader(csvfile)
         newRow = next(reader)
         newRow.pop(0)  # removes the first element of the row
-        result += " ".join(newRow) + " "
+        result += " ".join(newRow)
         result += ':=\n'
         for row in reader:
             result += " ".join(row) + " "

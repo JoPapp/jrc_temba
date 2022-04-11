@@ -1,8 +1,10 @@
-MODELRUNS = ["TEMBA_21_10_Refer", "TEMBA_21_10_2oC", "TEMBA_21_10_1.5C"]
+MODELRUNS = ["RD_Low"]#, "RD_High", "NP_Low", "NP_High"]
 
 rule all:
     # input: ["results/{model_run}.pickle".format(model_run=model_run) for model_run in MODELRUNS]
-    input: ["results/export_{model_run}".format(model_run=model_run) for model_run in MODELRUNS]
+    # input: ["results/export_{model_run}".format(model_run=model_run) for model_run in MODELRUNS]
+    # input: expand("results/{model_run}_cbc.txt", model_run=MODELRUNS)
+    input: expand("results/{model_run}/AnnualEmissions.csv", model_run=MODELRUNS)
 
 rule generate_model_file:
     input: 
@@ -28,7 +30,7 @@ rule generate_lp_file:
     input: 
         "output_data/{model_run}_modex.txt"
     output: 
-        protected("output_data/{model_run}.lp.gz")
+        "output_data/{model_run}.lp.gz"
     log: 
         "output_data/glpsol_{model_run}.log"
     threads: 
@@ -40,36 +42,45 @@ rule solve_lp:
     input: 
         "output_data/{model_run}.lp.gz"
     output: 
-        protected("output_data/{model_run}.sol")
+        "output_data/{model_run}.sol"
     log: 
         "output_data/gurobi_{model_run}.log"
     threads: 
         2
     shell:
-        "gurobi_cl NumericFocus=1 Method=2 Threads={threads} ResultFile={output} ResultFile=output_data/infeasible.ilp LogFile={log} {input}"
+        'cplex -c "read {input}" "optimize" "write {output}"'
 
 rule remove_zero_values:
     input: "output_data/{model_run}.sol"
     output: "results/{model_run}.sol"
     shell:
         "sed '/ * 0$/d' {input} > {output}"
-
-rule generate_pickle:
-    input: 
-        results="results/{model_run}.sol", modelfile="output_data/{model_run}_modex.txt"
-    output: 
-        pickle="results/{model_run}.pickle", folder=directory("results/{model_run}")
+        
+rule transform_results:
+    input: "results/{model_run}.sol"
+    output: "results/{model_run}_transform.txt"
     shell:
-        "mkdir {output.folder} && python scripts/generate_pickle.py {input.modelfile} {input.results} gurobi {output.pickle} {output.folder}"
+        "Python scripts/transform_31072013.py {input} {output}"
+        
+rule sort_results:
+    input: "results/{model_run}_transform.txt"
+    output: "results/{model_run}_sorted.txt"
+    shell:
+        "sort < {input} > {output}"
+        
+rule cplex_to_cbc:
+    input: "results/{model_run}_sorted.txt"
+    output: "results/{model_run}_cbc.txt"
+    shell:
+        "python scripts/cplextocbc.py {input} {output}"
 
 rule generate_results:
     input: 
-        pickle="results/{model_run}.pickle"
+        results="results/{model_run}_cbc.txt",
+        datafile="output_data/{model_run}_modex.txt"
     params:
-        scenario="{model_run}"
+        scenario="{model_run}", folder="results/{model_run}"
     output: 
-        folder=directory("results/export_{model_run}")
-    conda:
-        "envs/results.yaml"
-    shell:
-        "python scripts/generate_results.py {input.pickle} {params.scenario} {output.folder}"
+        emissions="results/{model_run}/AnnualEmissions.csv"
+    script:
+        "scripts/generate_results.py"
