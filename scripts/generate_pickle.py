@@ -348,6 +348,7 @@ if __name__ == '__main__':
         pickle_file = sys.argv[4]
         file_format = sys.argv[3]
         csv_folder = sys.argv[5]
+        os.makedirs(csv_folder, exist_ok=True)
         # try:
         main(input_file, data_file, pickle_file, file_format, csv_folder)
         # except:

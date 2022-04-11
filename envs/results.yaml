@@ -3,11 +3,11 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - numpy=1.17.0=py37h6b0580a_0
-  - pandas=0.25.0=py37h86efe34_0
-  - plotly=3.10.0=py_0
-  - plotly-orca=1.2.1=1
-  - psutil=5.6.3=py37h01d97ff_0
-  - python=3.7.3=h93065d6_1
-  - python-cufflinks=0.16=py_0
-  - xlrd=1.2.0=py_0
+  - numpy
+  - pandas
+  - plotly
+  - plotly-orca
+  - psutil=5.6.3
+  - python-cufflinks
+  - xlrd=1.2.0
+  - snakemake-minimal
